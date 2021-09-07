@@ -1,0 +1,76 @@
+FROM ubuntu:latest
+
+# General system tools
+
+RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone
+
+RUN apt-get -y update && \
+    apt-get -y install build-essential make gcc \
+                        g++ flex bison patch texinfo  \
+                        libncurses5-dev libmpfr-dev  \
+                        libgmp3-dev libmpc-dev libzip-dev \
+                        python-dev libexpat1-dev \
+                        libftdi-dev libtool autoconf \
+                        libftdi-dev subversion libelf-dev \ 
+                        elfutils iverilog gtkwave python3 \
+                        python3-pip git libgmp-dev libmpfr-dev \
+                        libmpc-dev zlib1g-dev texinfo \
+                        build-essential flex bison wget
+
+ENV PREFIX=/opt/toolchains/or1k-elf
+ENV PATH=$PATH:$PREFIX/bin
+
+WORKDIR /build
+
+RUN git clone git://sourceware.org/git/binutils-gdb.git binutils && \
+    git clone https://github.com/openrisc/or1k-gcc.git gcc && \
+    git clone git://sourceware.org/git/newlib-cygwin.git newlib && \
+    git clone https://github.com/openrisc/binutils-gdb.git gdb && \
+    wget https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz && \
+    tar -xf gmp-6.2.1.tar.xz && \
+    rm -rf gmp-6.2.1.tar.xz && \
+    ln -s ../gmp-6.2.1 gcc/gmp && \
+    wget https://ftp.gnu.org/gnu/mpc/mpc-1.2.1.tar.gz && \
+    tar -xzf mpc-1.2.1.tar.gz && \
+    rm -rf mpc-1.2.1.tar.gz && \
+    ln -s ../mpc-1.2.1 gcc/mpc && \
+    wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.1.0.tar.xz && \
+    tar -xf mpfr-4.1.0.tar.xz && \
+    rm -rf mpfr-4.1.0.tar.xz && \
+    ln -s ../mpfr-4.1.0 gcc/mpfr && \
+    mkdir build-binutils && cd build-binutils && \
+    ../binutils/configure --target=or1k-elf --prefix=$PREFIX --disable-itcl --disable-tk --disable-tcl --disable-winsup --disable-gdbtk --disable-libgui --disable-rda --disable-sid --disable-sim --disable-gdb --with-sysroot --disable-newlib --disable-libgloss --with-system-zlib && \
+    make && \
+    make install && \
+    cd .. && \
+    mkdir build-gcc-stage1; cd build-gcc-stage1 && \
+    ../gcc/configure --target=or1k-elf --prefix=$PREFIX --enable-languages=c --disable-shared --disable-libssp && \
+    make && \
+    make install && \
+    cd .. && \
+    mkdir build-newlib; cd build-newlib && \
+    ../newlib/configure --target=or1k-elf --prefix=$PREFIX && \
+    make && \
+    make install && \
+    cd .. && \
+    mkdir build-gcc-stage2; cd build-gcc-stage2 && \
+    ../gcc/configure --target=or1k-elf --prefix=$PREFIX --enable-languages=c,c++ --disable-shared --disable-libssp --with-newlib && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf binutils gcc newlib gdb build-binutils build-gcc-stage1 build-newlib build-gcc-stage2
+
+# RUN mkdir build-gdb; cd build-gdb && \
+#     ../gdb/configure --target=or1k-elf --prefix=$PREFIX --disable-itcl --disable-tk --disable-tcl --disable-winsup --disable-gdbtk --disable-libgui --disable-rda --disable-sid --with-sysroot --disable-newlib --disable-libgloss --disable-gas --disable-ld --disable-binutils --disable-gprof --with-system-zlib && \
+#     make && \
+#     make install && \
+#     cd ..
+
+# RUN pip3 install fusesoc
+
+# RUN git clone https://github.com/olofk/fusesoc.git or1k && \
+#     cd or1k && \
+#     pip3 install -e . && \
+#     cd ..
+
+WORKDIR /root

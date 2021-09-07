@@ -1,0 +1,18 @@
+FROM librecores/librecores-ci:latest
+
+WORKDIR /root
+
+# RUN fusesoc init -y && \
+#     fusesoc library add elf-loader https://github.com/fusesoc/elf-loader
+
+# RUN mkdir -p /tmp/openrisc/src && \
+#     cd /tmp/openrisc/src && \
+#     git clone https://github.com/stffrdhrn/mor1kx-generic.git && \
+#     git clone https://github.com/openrisc/or1k_marocchino.git && \
+#     cd && \
+#     fusesoc init -y && \
+#     fusesoc library add intgen https://github.com/stffrdhrn/intgen.git && \
+#     fusesoc library add mor1kx-generic /tmp/openrisc/src/mor1kx-generic && \
+#     fusesoc library add or1k_marocchino /tmp/openrisc/src/or1k_marocchino && \
+#     fusesoc library add fusesoc-cores https://github.com/fusesoc/fusesoc-cores
+
